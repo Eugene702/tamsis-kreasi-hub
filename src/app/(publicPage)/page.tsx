@@ -33,7 +33,7 @@ const Page = () => {
           </div>
         </form>
       </section>
-      <div className="order-1 lg:order-2">
+      <div className="hidden lg:block">
         <VideoPlaylist />
       </div>
     </div>
