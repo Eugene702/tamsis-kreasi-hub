@@ -8,7 +8,7 @@ const CardContent = dynamic(() => import('@/components/cardContent'))
 const Page = () => {
   return <Fragment>
     <div className="grid lg:grid-cols-2 gap-12 lg:gap-40 xl:gap-60 items-center py-10">
-      <section className="space-y-6 order-2 lg:order-1">
+      <section className="space-y-6">
         <div className="space-y-5 max-w-xl">
           <h1 className="font-bold text-4xl sm:text-5xl leading-tight">
             Inilah Talenta Unggulan Kami

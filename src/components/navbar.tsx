@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 
 const navLinks = [
     { label: "Eksplorasi", children: [ { label: "Web Design", href: "/categories/web-design" } ] },
@@ -11,12 +12,14 @@ const navLinks = [
 const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const pathname = usePathname();
+    const showSearch = pathname !== "/"; // tampilkan hanya jika bukan halaman root
 
     return (
         <header className="sticky top-0 z-40">
             <nav className="px-5 md:px-10 h-16 flex items-center gap-6 backdrop-blur bg-base-100/70 border-b border-base-300/60 supports-[backdrop-filter]:bg-base-100/55">
                 {/* Brand + Mobile Toggle */}
-                <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="flex items-center gap-4 flex-none md:flex-1 min-w-0">
                     <button
                         className="md:hidden btn btn-sm btn-ghost btn-circle"
                         aria-label="Toggle menu"
@@ -31,8 +34,27 @@ const Navbar = () => {
                     <Link href="/" className="text-lg md:text-xl font-bold font-[Pacifico] whitespace-nowrap">Tamsis Kreasi Hub</Link>
                 </div>
 
+                {/* Center Search (non-root pages) */}
+                {showSearch && (
+                    <form className="hidden md:block flex-1 max-w-xl" onSubmit={(e)=>e.preventDefault()}>
+                        <div className="join w-full input input-sm md:input-md !rounded-full items-center px-2 pr-3 gap-1 bg-base-100/80">
+                            <input
+                                type="text"
+                                placeholder="Cari karya atau kreator..."
+                                className="join-item w-full bg-transparent focus:outline-none text-sm"
+                                aria-label="Cari"
+                            />
+                            <button className="btn bg-emerald-700 hover:bg-emerald-600 btn-circle btn-sm text-white" aria-label="Cari">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                )}
+
                 {/* Desktop Nav */}
-                <ul className="hidden md:flex items-center gap-2 lg:gap-4">
+                <ul className="hidden md:flex items-center gap-2 lg:gap-4 flex-none">
                     {navLinks.map(item => (
                         <li key={item.label} className="relative">
                             {item.children ? (
@@ -55,7 +77,7 @@ const Navbar = () => {
                 </ul>
 
                 {/* Right - Auth */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-none">
                     <Link href="/auth/signin" className="btn btn-primary rounded-full btn-sm hidden sm:inline-flex">Masuk</Link>
                 </div>
             </nav>
@@ -64,6 +86,18 @@ const Navbar = () => {
             {mobileOpen && (
                 <div className="md:hidden animate-fade-in">
                     <div className="px-5 pb-6 pt-2 space-y-4 bg-base-100/90 backdrop-blur border-b border-base-300/60">
+                        {showSearch && (
+                            <form onSubmit={(e)=>e.preventDefault()}>
+                                <div className="join w-full input input-sm !rounded-full items-center px-2 pr-3 gap-1 bg-base-100/80 mb-4">
+                                    <input type="text" placeholder="Cari..." className="join-item w-full bg-transparent focus:outline-none text-sm" />
+                                    <button className="btn bg-emerald-700 hover:bg-emerald-600 btn-circle btn-sm text-white" aria-label="Cari">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                         <ul className="space-y-1">
                             {navLinks.map(item => (
                                 <li key={item.label}>
