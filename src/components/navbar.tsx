@@ -1,10 +1,11 @@
 "use client"
 import Link from "next/link"
 import { useState } from "react"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 
 const navLinks = [
-    { label: "Eksplorasi", children: [ { label: "Web Design", href: "/categories/web-design" } ] },
+    { label: "Eksplorasi", children: [ { label: "Web Design", href: "/category/web-design" } ] },
     { label: "Bintang Tamsis", href: "/star" },
     { label: "Kabar Berita", href: "/news" },
 ];
@@ -76,9 +77,24 @@ const Navbar = () => {
                     ))}
                 </ul>
 
-                {/* Right - Auth */}
+                {/* Right - Auth / User */}
                 <div className="flex items-center gap-3 flex-none">
+                    {/* If not authenticated (placeholder) */}
                     <Link href="/auth/signin" className="btn btn-primary rounded-full btn-sm hidden sm:inline-flex">Masuk</Link>
+                    {/* Avatar dropdown (assume logged-in mock) */}
+                    <div className="dropdown dropdown-end">
+                        <button className="btn btn-ghost btn-circle avatar w-10 h-10 overflow-hidden ring-2 ring-base-200" aria-label="User Menu">
+                            <div className="w-10 h-10 relative">
+                                <Image src="/temp.png" alt="Avatar" fill className="object-cover" />
+                            </div>
+                        </button>
+                        <ul className="mt-3 z-[1] p-3 menu menu-sm dropdown-content bg-base-100/90 backdrop-blur rounded-2xl w-60 ring-1 ring-base-300/40 shadow-lg space-y-1">
+                            <li><Link href="/suwir" className="rounded-xl">Profil</Link></li>
+                            <li><Link href="/student" className="rounded-xl">Daftar Siswa</Link></li>
+                            <li><Link href="/settings" className="rounded-xl">Pengaturan</Link></li>
+                            <li><button className="rounded-xl text-error justify-start">Logout</button></li>
+                        </ul>
+                    </div>
                 </div>
             </nav>
 
@@ -124,7 +140,11 @@ const Navbar = () => {
                                 </li>
                             ))}
                         </ul>
-                        <div className="pt-2">
+                        <div className="pt-4 border-t border-base-300/60 space-y-3">
+                            <Link href="/suwir" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Profil</Link>
+                            <Link href="/star" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Daftar Siswa</Link>
+                            <Link href="/settings" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Pengaturan</Link>
+                            <button className="btn btn-outline btn-sm w-full rounded-full border-error text-error hover:bg-error hover:text-error-content">Logout</button>
                             <Link href="/auth/signin" className="btn btn-primary rounded-full w-full">Masuk</Link>
                         </div>
                     </div>
