@@ -1,0 +1,79 @@
+"use server"
+
+import prisma from "@/lib/database"
+import { Prisma } from "@prisma/client"
+
+export type GetType = Awaited<ReturnType<typeof GET>>
+export const GET = async ({ search, page }: { search?: string, page?: number }) => {
+    try {
+        const where: Prisma.UserWhereInput = {
+            role: "STUDENT",
+            name: {
+                contains: search ?? "",
+                mode: "insensitive"
+            }
+        }
+
+        const [user, count, studentTotal, projectTotal, projectViewsTotal] = await Promise.all([
+            prisma.user.findMany({
+                take: 10,
+                skip: page ? (page - 1) * 10 : 0,
+                where: where,
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    studentUser: {
+                        select: {
+                            classLevel: true,
+                            major: true,
+                            birthday: true,
+                            telp: true,
+                        }
+                    },
+                    _count: {
+                        select: {
+                            userProjects: true
+                        }
+                    }
+                }
+            }),
+            prisma.user.count({ where: where }),
+            prisma.studentUser.findMany({
+                where: {
+                    user: { role: "STUDENT" },
+                },
+                select: {
+                    birthday: true,
+                }
+            }),
+            prisma.userProject.count(),
+            prisma.userProjectViews.count(),
+        ])
+
+        const totalPage = Math.ceil(count / 10)
+        const birthday = () => {
+            const data = studentTotal.map(e => e.birthday ? (new Date().getFullYear() - e.birthday.getFullYear()) : 0)
+            const uniqueData = [ ...new Set(data) ]
+            return uniqueData
+        }
+
+        return {
+            currentPage: page ?? 1,
+            totalPage: totalPage,
+            data: user,
+            hasNext: (page ?? 1) < totalPage,
+            hasPrev: (page ?? 1) > 1,
+            stats: { studentTotal: studentTotal.length, projectTotal, projectViewsTotal },
+            filterData: {
+                birthday: birthday()
+            }
+        }
+        
+    }catch(e){
+        console.error(e)
+        return {
+            error: "Ada kesalahan pada server!"
+        }
+    }
+}

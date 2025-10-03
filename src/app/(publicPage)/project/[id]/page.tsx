@@ -27,7 +27,7 @@ const mockProject = {
 };
 
 const Page = () => {
-    const p = mockProject; // placeholder; replace with real fetch in future
+    const p = mockProject;
     return (
         <Fragment>
             <ProjectHeader title={p.title} category={p.category} author={p.author} stats={p.stats} />
