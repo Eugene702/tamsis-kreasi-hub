@@ -3,23 +3,25 @@ import Link from "next/link"
 import { useState } from "react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { useSession, signIn, signOut } from "next-auth/react"
 
 const navLinks = [
     { label: "Eksplorasi", children: [ { label: "Web Design", href: "/category/web-design" } ] },
     { label: "Bintang Tamsis", href: "/star" },
-    { label: "Kabar Berita", href: "/news" },
+    // { label: "Kabar Berita", href: "/news" },
 ];
 
 const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const pathname = usePathname();
-    const showSearch = pathname !== "/"; // tampilkan hanya jika bukan halaman root
+    const { data: session, status } = useSession();
+    const showSearch = pathname !== "/";
+    const isLoggedIn = status === "authenticated";
 
     return (
         <header className="sticky top-0 z-40">
             <nav className="px-5 md:px-10 h-16 flex items-center gap-6 backdrop-blur bg-base-100/70 border-b border-base-300/60 supports-[backdrop-filter]:bg-base-100/55">
-                {/* Brand + Mobile Toggle */}
                 <div className="flex items-center gap-4 flex-none md:flex-1 min-w-0">
                     <button
                         className="md:hidden btn btn-sm btn-ghost btn-circle"
@@ -35,7 +37,6 @@ const Navbar = () => {
                     <Link href="/" className="text-lg md:text-xl font-bold font-[Pacifico] whitespace-nowrap">Tamsis Kreasi Hub</Link>
                 </div>
 
-                {/* Center Search (non-root pages) */}
                 {showSearch && (
                     <form className="hidden md:block flex-1 max-w-xl" onSubmit={(e)=>e.preventDefault()}>
                         <div className="join w-full input input-sm md:input-md !rounded-full items-center px-2 pr-3 gap-1 bg-base-100/80">
@@ -54,7 +55,6 @@ const Navbar = () => {
                     </form>
                 )}
 
-                {/* Desktop Nav */}
                 <ul className="hidden md:flex items-center gap-2 lg:gap-4 flex-none">
                     {navLinks.map(item => (
                         <li key={item.label} className="relative">
@@ -77,28 +77,28 @@ const Navbar = () => {
                     ))}
                 </ul>
 
-                {/* Right - Auth / User */}
                 <div className="flex items-center gap-3 flex-none">
-                    {/* If not authenticated (placeholder) */}
-                    <Link href="/auth/signin" className="btn btn-primary rounded-full btn-sm hidden sm:inline-flex">Masuk</Link>
-                    {/* Avatar dropdown (assume logged-in mock) */}
-                    <div className="dropdown dropdown-end">
-                        <button className="btn btn-ghost btn-circle avatar w-10 h-10 overflow-hidden ring-2 ring-base-200" aria-label="User Menu">
-                            <div className="w-10 h-10 relative">
-                                <Image src="/temp.png" alt="Avatar" fill className="object-cover" />
-                            </div>
-                        </button>
-                        <ul className="mt-3 z-[1] p-3 menu menu-sm dropdown-content bg-base-100/90 backdrop-blur rounded-2xl w-60 ring-1 ring-base-300/40 shadow-lg space-y-1">
-                            <li><Link href="/suwir" className="rounded-xl">Profil</Link></li>
-                            <li><Link href="/student" className="rounded-xl">Daftar Siswa</Link></li>
-                            <li><Link href="/settings" className="rounded-xl">Pengaturan</Link></li>
-                            <li><button className="rounded-xl text-error justify-start">Logout</button></li>
-                        </ul>
-                    </div>
+                    {!isLoggedIn && (
+                        <Link href="/auth/signin" className="btn btn-primary rounded-full btn-sm hidden sm:inline-flex">Masuk</Link>
+                    )}
+                    {isLoggedIn && (
+                        <div className="dropdown dropdown-end">
+                            <button className="btn btn-ghost btn-circle avatar w-10 h-10 overflow-hidden ring-2 ring-base-200" aria-label="User Menu">
+                                <div className="w-10 h-10 relative">
+                                    <Image src="/temp.png" alt="Avatar" fill className="object-cover" />
+                                </div>
+                            </button>
+                            <ul className="mt-3 z-[1] p-3 menu menu-sm dropdown-content bg-base-100/90 backdrop-blur rounded-2xl w-60 ring-1 ring-base-300/40 shadow-lg space-y-1">
+                                <li><Link href="/suwir" className="rounded-xl">Profil</Link></li>
+                                <li><Link href="/student" className="rounded-xl">Daftar Siswa</Link></li>
+                                {/* <li><Link href="/settings" className="rounded-xl">Pengaturan</Link></li> */}
+                                <li><button className="rounded-xl text-error justify-start" onClick={() => signOut()}>Logout</button></li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </nav>
 
-            {/* Mobile Panel */}
             {mobileOpen && (
                 <div className="md:hidden animate-fade-in">
                     <div className="px-5 pb-6 pt-2 space-y-4 bg-base-100/90 backdrop-blur border-b border-base-300/60">
@@ -141,11 +141,21 @@ const Navbar = () => {
                             ))}
                         </ul>
                         <div className="pt-4 border-t border-base-300/60 space-y-3">
-                            <Link href="/suwir" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Profil</Link>
-                            <Link href="/star" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Daftar Siswa</Link>
-                            <Link href="/settings" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Pengaturan</Link>
-                            <button className="btn btn-outline btn-sm w-full rounded-full border-error text-error hover:bg-error hover:text-error-content">Logout</button>
-                            <Link href="/auth/signin" className="btn btn-primary rounded-full w-full">Masuk</Link>
+                            {isLoggedIn ? (
+                                <>
+                                    <Link href="/suwir" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Profil</Link>
+                                    <Link href="/student" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Daftar Siswa</Link>
+                                    <Link href="/settings" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Pengaturan</Link>
+                                    <button 
+                                        className="btn btn-outline btn-sm w-full rounded-full border-error text-error hover:bg-error hover:text-error-content"
+                                        onClick={() => signOut()}
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <Link href="/auth/signin" className="btn btn-primary rounded-full w-full">Masuk</Link>
+                            )}
                         </div>
                     </div>
                 </div>

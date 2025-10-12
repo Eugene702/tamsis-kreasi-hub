@@ -16,12 +16,14 @@ const formatNumber = (n: number) => Intl.NumberFormat('id-ID').format(n);
 export function ProjectHeader({ title, category, author, stats }: ProjectHeaderProps) {
   return (
     <div className="pt-10 md:pt-16 space-y-6">
-      <nav className="text-[11px] breadcrumbs text-base-content/60">
+      <nav className="text-[11px] breadcrumbs text-base-content/60 flex justify-between items-center">
         <ul>
           <li><Link href="/">Beranda</Link></li>
           <li><Link href="/category/web-development">Web Development</Link></li>
           <li className="truncate max-w-[10rem] md:max-w-none">{title}</li>
         </ul>
+
+        <Link href={"/project/asn/edit"} className="btn btn-ghost rounded-xl">Edit Projek</Link>
       </nav>
       <div className="space-y-5 max-w-4xl">
         <span className="inline-flex items-center text-xs tracking-wide uppercase text-base-content/60 bg-base-200/60 px-3 py-1 rounded-full backdrop-blur-sm">{category}</span>

@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT 
+}
+
+model User{
+  id String @id @default(cuid())
+  photo Json?
+  email String @unique
+  name String
+  password String
+  role Role @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentUser StudentUser?
+  userProjects UserProject[]
+}
+
+model Categories {
+  id String @id @default(cuid())
+  name String @unique
+
+  userProjects UserProjectCategories[]
+}
+
+model StudentUser{
+  id String @id @default(cuid())
+  userId String @unique
+  major String
+  classLevel Int
+  birthday DateTime @db.Date
+  telp String?
+  bio String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model UserProject{
+  id String @id @default(cuid())
+  userId String
+  title String
+  description String
+  detail String
+  content Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  categories UserProjectCategories[]
+  userProjectViews UserProjectViews[]
+}
+
+model UserProjectCategories{
+  userProjectId String
+  categoryId String
+
+  userProject UserProject @relation(fields: [userProjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  categories Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@id([userProjectId, categoryId])
+}
+
+model UserProjectViews{
+  id String @id @default(cuid())
+  userProjectId String
+  address String
+  createdAt DateTime @default(now())
+
+  userProject UserProject @relation(fields: [userProjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
