@@ -153,7 +153,7 @@ const Form = () => {
                 <select name="major" className="select select-bordered !rounded-xl" value={values.major} onChange={handleChange}>
                     <option value="">Pilih Jurusan</option>
                     {
-                        Major.map((e, index) => <option key={index}>{e}</option>)
+                        Major.map((e, index) => <option key={index} value={e.key}>{e.value}</option>)
                     }
                 </select>
                 {errors.major && <span className="fieldset-label text-error">{errors.major}</span>}

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Fragment } from "react"
 
 const CardContent = dynamic(() => import('@/components/cardContent'))
-const page = () => {
+const page = async () => {
     return <Fragment>
         <div className="grid grid-cols-4 gap-6">
             <Link href="/project/create" className="border border-dashed rounded-xl p-4 flex flex-col justify-center items-center border-gray-400 text-center space-y-4">

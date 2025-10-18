@@ -1,7 +1,8 @@
 export const Major = [
-    "Rekayasa Perangkat Lunak",
-    "Teknik Komputer dan Jaringan",
-    "Teknik Instalasi Tenaga Listrik",
-    "Teknik Kendaraan Ringan",
-    "Teknik Bisnis Sepeda Motor",
+    { value: "Rekayasa Perangkat Lunak", key: "rpl" },
+    { value: "Teknik Komputer dan Jaringan", key: "tkj" },
+    { value: "Teknik Instalasi Tenaga Listrik", key: "titl" },
+    { value: "Teknik Kendaraan Ringan", key: "tkr" },
+    { value: "Teknik Bisnis Sepeda Motor", key: "tbsm" },
+    { value: "Teknik Pemesinan", key: "tp" },
 ]

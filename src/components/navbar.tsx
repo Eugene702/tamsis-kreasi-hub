@@ -1,23 +1,39 @@
 "use client"
+
 import Link from "next/link"
 import { useState } from "react"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useSession, signIn, signOut } from "next-auth/react"
+import { showToast } from "@/lib/alert"
 
 const navLinks = [
-    { label: "Eksplorasi", children: [ { label: "Web Design", href: "/category/web-design" } ] },
+    { label: "Eksplorasi", children: [{ label: "Web Design", href: "/category/web-design" }] },
     { label: "Bintang Tamsis", href: "/star" },
     // { label: "Kabar Berita", href: "/news" },
 ];
 
 const Navbar = () => {
-    const [mobileOpen, setMobileOpen] = useState(false);
+    const router = useRouter()
+    const [loading, setLoading] = useState<"SIGN_OUT" | null>(null)
+    const [mobileOpen, setMobileOpen] = useState(false)
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const pathname = usePathname();
     const { data: session, status } = useSession();
     const showSearch = pathname !== "/";
     const isLoggedIn = status === "authenticated";
+
+    const handleOnClickSignOut = async () => {
+        try {
+            setLoading("SIGN_OUT")
+            await signOut({ redirect: false })
+            router.refresh()
+        }catch{
+            showToast({ icon: "error", title: "Terjadi kesalahan pada saat Sign Out!" })
+        }finally{
+            setLoading(null)
+        }
+    }
 
     return (
         <header className="sticky top-0 z-40">
@@ -38,7 +54,7 @@ const Navbar = () => {
                 </div>
 
                 {showSearch && (
-                    <form className="hidden md:block flex-1 max-w-xl" onSubmit={(e)=>e.preventDefault()}>
+                    <form className="hidden md:block flex-1 max-w-xl" onSubmit={(e) => e.preventDefault()}>
                         <div className="join w-full input input-sm md:input-md !rounded-full items-center px-2 pr-3 gap-1 bg-base-100/80">
                             <input
                                 type="text"
@@ -62,7 +78,7 @@ const Navbar = () => {
                                 <div className="dropdown dropdown-hover">
                                     <button className="btn btn-ghost rounded-full btn-sm">
                                         {item.label}
-                                        <svg className="w-3 h-3 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.188l3.71-3.957a.75.75 0 111.08 1.04l-4.25 4.53a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
+                                        <svg className="w-3 h-3 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.188l3.71-3.957a.75.75 0 111.08 1.04l-4.25 4.53a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" /></svg>
                                     </button>
                                     <ul className="menu dropdown-content bg-base-100 rounded-xl shadow-xl p-4 mt-2 w-56">
                                         {item.children.map(ch => (
@@ -89,10 +105,12 @@ const Navbar = () => {
                                 </div>
                             </button>
                             <ul className="mt-3 z-[1] p-3 menu menu-sm dropdown-content bg-base-100/90 backdrop-blur rounded-2xl w-60 ring-1 ring-base-300/40 shadow-lg space-y-1">
-                                <li><Link href="/suwir" className="rounded-xl">Profil</Link></li>
-                                <li><Link href="/student" className="rounded-xl">Daftar Siswa</Link></li>
+                                <li><Link href={session.user.id} className="rounded-xl">Profil</Link></li>
+                                {
+                                    session.user.role === "ADMIN" && <li><Link href="/admin/student" className="rounded-xl">Daftar Siswa</Link></li>
+                                }
                                 {/* <li><Link href="/settings" className="rounded-xl">Pengaturan</Link></li> */}
-                                <li><button className="rounded-xl text-error justify-start" onClick={() => signOut()}>Logout</button></li>
+                                <li><button className="rounded-xl text-error justify-start" onClick={handleOnClickSignOut} disabled={loading === "SIGN_OUT"}>{loading === "SIGN_OUT" && <div className="loading"></div>} <span>Keluar</span></button></li>
                             </ul>
                         </div>
                     )}
@@ -103,7 +121,7 @@ const Navbar = () => {
                 <div className="md:hidden animate-fade-in">
                     <div className="px-5 pb-6 pt-2 space-y-4 bg-base-100/90 backdrop-blur border-b border-base-300/60">
                         {showSearch && (
-                            <form onSubmit={(e)=>e.preventDefault()}>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div className="join w-full input input-sm !rounded-full items-center px-2 pr-3 gap-1 bg-base-100/80 mb-4">
                                     <input type="text" placeholder="Cari..." className="join-item w-full bg-transparent focus:outline-none text-sm" />
                                     <button className="btn bg-emerald-700 hover:bg-emerald-600 btn-circle btn-sm text-white" aria-label="Cari">
@@ -124,7 +142,7 @@ const Navbar = () => {
                                                 onClick={() => setOpenDropdown(d => d === item.label ? null : item.label)}
                                             >
                                                 <span>{item.label}</span>
-                                                <svg className={`w-3 h-3 transition ${openDropdown === item.label ? 'rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.188l3.71-3.957a.75.75 0 111.08 1.04l-4.25 4.53a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
+                                                <svg className={`w-3 h-3 transition ${openDropdown === item.label ? 'rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.188l3.71-3.957a.75.75 0 111.08 1.04l-4.25 4.53a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" /></svg>
                                             </button>
                                             {openDropdown === item.label && (
                                                 <ul className="mt-2 ml-4 space-y-1 border-l border-base-300 pl-3">
@@ -146,7 +164,7 @@ const Navbar = () => {
                                     <Link href="/suwir" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Profil</Link>
                                     <Link href="/student" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Daftar Siswa</Link>
                                     <Link href="/settings" className="btn btn-ghost btn-sm w-full justify-start rounded-full">Pengaturan</Link>
-                                    <button 
+                                    <button
                                         className="btn btn-outline btn-sm w-full rounded-full border-error text-error hover:bg-error hover:text-error-content"
                                         onClick={() => signOut()}
                                     >

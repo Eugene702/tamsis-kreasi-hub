@@ -39,7 +39,7 @@
     "@types/node": "^20.19.20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "daisyui": "^5.0.54",
+    "daisyui": "^5.3.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "prisma": "^6.17.1",

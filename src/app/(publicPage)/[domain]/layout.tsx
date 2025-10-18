@@ -5,7 +5,8 @@ import { Fragment, ReactNode } from "react"
 
 const Tabs = dynamic(() => import('./_components/tabs'))
 
-const layout = ({ children }: { children: ReactNode }) => {
+const layout = async ({ children, params }: { children: ReactNode, params: Promise<{ domain: string }> }) => {
+    const param = await params
     const p = {
         name: 'Eugene Feilian Putra Rangga',
         avatar: '/temp.png',
@@ -47,7 +48,7 @@ const layout = ({ children }: { children: ReactNode }) => {
             </div>
         </div>
         <div className="mt-14">
-            <Tabs domain="suwir" />
+            <Tabs domain={param.domain} />
             <div className="py-12">
                 { children }
             </div>

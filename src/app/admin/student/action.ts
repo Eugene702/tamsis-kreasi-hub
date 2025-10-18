@@ -6,13 +6,14 @@ import { StatusCodes } from "http-status-codes"
 import { revalidatePath } from "next/cache"
 import { deleteImage } from "@/lib/cloudinary"
 import { UploadApiResponse } from "cloudinary"
+import { moment } from "@/lib/moment"
 
 export type GetType = Awaited<ReturnType<typeof GET>>
-export const GET = async ({ search, page, age }: { search?: string, page?: number, age?: number }) => {
+export const GET = async ({ search, page, age, major, classLevel }: { search?: string, page?: number, age?: number, major?: string, classLevel?: number }) => {
     try {
         const where: Prisma.UserWhereInput = {
             role: "STUDENT",
-            OR: [
+            AND: [
                 {
                     name: {
                         contains: search ?? "",
@@ -22,11 +23,13 @@ export const GET = async ({ search, page, age }: { search?: string, page?: numbe
                 {
                     studentUser: {
                         birthday: age ? {
-                            gte: new Date(new Date().getFullYear() - age),
-                            lte: new Date(new Date().getFullYear() - age)
-                        } : undefined
+                            lt: moment().subtract(age, 'years').endOf('year').toDate(),
+                            gt: moment().subtract(age, 'years').startOf('year').toDate()
+                        } : undefined,
+                        major: major ? major : undefined,
+                        classLevel: classLevel ? classLevel : undefined,
                     }
-                }
+                },
             ]
         }
 

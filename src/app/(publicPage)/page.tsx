@@ -1,11 +1,19 @@
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { Fragment } from "react"
+import { GET } from "./action"
+import { StatusCodes } from "http-status-codes"
 
 const VideoPlaylist = dynamic(() => import('./_components/videoPlaylist'))
 const CardContent = dynamic(() => import('@/components/cardContent'))
+const Error = dynamic(() => import('@/components/error'))
 
-const Page = () => {
+const page = async () => {
+  const response = await GET()
+  if (response.status === StatusCodes.INTERNAL_SERVER_ERROR) {
+    return <Error message={response.message} />
+  }
+
   return <Fragment>
     <div className="grid lg:grid-cols-2 gap-12 lg:gap-40 xl:gap-60 items-center py-10">
       <section className="space-y-6">
@@ -41,15 +49,14 @@ const Page = () => {
     <section className="mt-4">
       <div className="overflow-x-auto no-scrollbar -mx-4 px-4">
         <div className="flex items-center gap-3 sm:gap-4 w-max">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Link
-              href="/category/web-development"
-              key={i}
-              className="btn btn-xs sm:btn-sm btn-outline !rounded-full whitespace-nowrap hover:btn-primary hover:text-primary-content transition"
-            >
-              Web Development
-            </Link>
-          ))}
+          {
+            response.data?.categories.map((e, index) => <Link
+              href={`/category/${e.slug}`}
+              key={index}
+              className="btn btn-xs sm:btn-sm btn-outline !rounded-full whitespace-nowrap hover:btn-primary hover:text-primary-content transition">
+              {e.name}
+            </Link>)
+          }
         </div>
       </div>
     </section>
@@ -65,4 +72,4 @@ const Page = () => {
   </Fragment>
 }
 
-export default Page
+export default page
