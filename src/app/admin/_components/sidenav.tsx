@@ -4,14 +4,14 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ReactNode } from "react"
 import { PiStudentFill } from "react-icons/pi"
-import { TbCategoryFilled, TbLayoutDashboardFilled } from "react-icons/tb"
+import { TbCategoryFilled, TbBulb } from "react-icons/tb"
 
 const Sidenav = () => {
     const pathname = usePathname()
     const links: { label: string, href: string, icon?: ReactNode, fixed?: boolean }[] = [
-        { label: "Dashboard", href: "/admin", icon: <TbLayoutDashboardFilled />, fixed: true },
         { label: "Manajemen Siswa", href: "/admin/student", icon: <PiStudentFill /> },
-        { label: "Manajemen Kategori", href: "/admin/category", icon: <TbCategoryFilled /> }
+        { label: "Manajemen Kategori", href: "/admin/category", icon: <TbCategoryFilled /> },
+        { label: "Manajemen Kemampuan", href: "/admin/skill", icon: <TbBulb /> }
     ]
 
     const isActive = (href: string, fixed: boolean = false) => {

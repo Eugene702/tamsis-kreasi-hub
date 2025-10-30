@@ -6,6 +6,7 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signIn, signOut } from "next-auth/react"
 import { showToast } from "@/lib/alert"
+import { UploadApiResponse } from "cloudinary"
 
 interface Category {
     label: string
@@ -14,9 +15,10 @@ interface Category {
 
 interface NavbarClientProps {
     categories: Category[]
+    userPhoto: UploadApiResponse | null
 }
 
-const NavbarClient = ({ categories }: NavbarClientProps) => {
+const NavbarClient = ({ categories, userPhoto }: NavbarClientProps) => {
     const navLinks = [
         { label: "Eksplorasi", children: categories.length > 0 ? categories : [{ label: "Kategori", href: "/category" }] },
         { label: "Karya", href: "/artwork" },
@@ -125,7 +127,12 @@ const NavbarClient = ({ categories }: NavbarClientProps) => {
                         <div className="dropdown dropdown-end">
                             <button className="btn btn-ghost btn-circle avatar w-10 h-10 overflow-hidden ring-2 ring-base-200" aria-label="User Menu">
                                 <div className="w-10 h-10 relative">
-                                    <Image src="/temp.png" alt="Avatar" fill className="object-cover" />
+                                    <Image 
+                                        src={userPhoto?.secure_url || userPhoto?.url || "/assets/images/logo.png"} 
+                                        alt={session?.user?.name || "User Avatar"} 
+                                        fill 
+                                        className="object-cover" 
+                                    />
                                 </div>
                             </button>
                             <ul className="mt-3 z-[1] p-3 menu menu-sm dropdown-content bg-base-100/90 backdrop-blur rounded-2xl w-60 ring-1 ring-base-300/40 shadow-lg space-y-1">

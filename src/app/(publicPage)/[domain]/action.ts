@@ -2,6 +2,8 @@
 
 import { StatusCodes } from "http-status-codes"
 import prisma from "@/lib/database"
+import bcrypt from "bcrypt"
+import { revalidatePath } from "next/cache"
 
 export const getProfile = async (domain: string) => {
     try{
@@ -97,6 +99,54 @@ export const getProject = async (domain: string) => {
             data
         }
     }catch(e){
+        console.error(e)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            message: "Ada kesalahan pada server!"
+        }
+    }
+}
+
+export const changePassword = async (userId: string, oldPassword: string, newPassword: string) => {
+    try {
+        // Ambil user dengan password
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, password: true }
+        })
+
+        if (!user) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                message: "Pengguna tidak ditemukan!"
+            }
+        }
+
+        // Verifikasi password lama
+        const isPasswordValid = await bcrypt.compare(oldPassword, user.password)
+        if (!isPasswordValid) {
+            return {
+                status: StatusCodes.UNAUTHORIZED,
+                message: "Kata sandi lama tidak sesuai!"
+            }
+        }
+
+        // Hash password baru
+        const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+        // Update password
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword }
+        })
+
+        revalidatePath("/", "layout")
+
+        return {
+            status: StatusCodes.OK,
+            message: "Kata sandi berhasil diubah!"
+        }
+    } catch (e) {
         console.error(e)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,

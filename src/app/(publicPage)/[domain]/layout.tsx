@@ -9,9 +9,12 @@ import { UploadApiResponse } from "cloudinary"
 import { Major } from "@/lib/values"
 import { moment } from "@/lib/moment"
 import { Metadata } from "next"
+import { useAuth } from "@/lib/auth"
 
 const Tabs = dynamic(() => import('./_components/tabs'))
 const PhotoProfile = dynamic(() => import('./_components/photoProfile'))
+const SettingsButton = dynamic(() => import('./_components/settingsButton'))
+const PasswordModal = dynamic(() => import('./_components/passwordModal'))
 
 export async function generateMetadata({ params }: { params: Promise<{ domain: string }> }): Promise<Metadata> {
     const param = await params
@@ -87,6 +90,7 @@ export async function generateMetadata({ params }: { params: Promise<{ domain: s
 }
 const layout = async ({ children, params }: { children: ReactNode, params: Promise<{ domain: string }> }) => {
     const param = await params
+    const session = await useAuth()
     const [response, projectsResponse] = await Promise.all([
         getProfile(param.domain),
         getProject(param.domain)
@@ -95,6 +99,9 @@ const layout = async ({ children, params }: { children: ReactNode, params: Promi
     if(response.status === StatusCodes.NOT_FOUND){
         return redirect("/")
     }
+
+    // Check if current user is the owner
+    const isOwner = session?.user?.id === param.domain
 
     const projects = projectsResponse.status === StatusCodes.OK ? projectsResponse.data || [] : []
     const jurusanName = Major.find(e => e.key === response.data?.studentUser?.major)?.value || 'Siswa'
@@ -158,9 +165,12 @@ const layout = async ({ children, params }: { children: ReactNode, params: Promi
                         name={response.data?.name || "Profile Photo"}
                     />
                     <div className="space-y-3">
-                        <h1 className="text-2xl md:text-4xl font-bold leading-tight">
-                            <span className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 bg-clip-text text-transparent">{ response.data?.name }</span>
-                        </h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl md:text-4xl font-bold leading-tight">
+                                <span className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 bg-clip-text text-transparent">{ response.data?.name }</span>
+                            </h1>
+                            {isOwner && <SettingsButton />}
+                        </div>
                         <div className="flex flex-wrap gap-3 text-xs md:text-[11px] text-base-content/60">
                             <span>Jurusan { jurusanName }</span>
                             <span className="w-1 h-1 rounded-full bg-base-content/30" />
@@ -178,6 +188,8 @@ const layout = async ({ children, params }: { children: ReactNode, params: Promi
                 { children }
             </div>
         </div>
+        
+        {isOwner && <PasswordModal />}
     </Fragment>
 }
 

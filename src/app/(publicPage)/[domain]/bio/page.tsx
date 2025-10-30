@@ -2,6 +2,7 @@ import { Major } from "@/lib/values";
 import { GET } from "./action";
 import moment from "moment-timezone";
 import dynamic from "next/dynamic";
+import { useAuth } from "@/lib/auth";
 
 interface ProfileData {
     name: string;
@@ -38,7 +39,11 @@ const Bio = dynamic(() => import('./_components/Bio'))
 
 const page = async ({ params }: { params: Promise<{ domain: string }> }) => {
     const param = await params
+    const session = await useAuth()
     const response = await GET(param.domain)
+    
+    // Check if current user is the owner of this profile
+    const isOwner = session?.user?.id === param.domain
 
     const formatNumber = (n: number) => Intl.NumberFormat('id-ID').format(n);
 
@@ -47,16 +52,16 @@ const page = async ({ params }: { params: Promise<{ domain: string }> }) => {
             <section className="space-y-4">
                 <h2 className="text-lg font-semibold">Tentang</h2>
                 <div className="flex items-center gap-4">
-                    <Bio bio={response.data?.profile?.studentUser?.bio} />
+                    <Bio bio={response.data?.profile?.studentUser?.bio} isOwner={isOwner} />
                 </div>
             </section>
             <section className="space-y-4">
                 <h2 className="text-lg font-semibold">Keahlian</h2>
                 <div className="flex flex-wrap gap-2">
                     {
-                        response.data?.profile?.studentUser?.skills.map((e, index) => <BadgeSkill key={index} name={e.skill.name} id={e.skill.id} />)
+                        response.data?.profile?.studentUser?.skills.map((e, index) => <BadgeSkill key={index} name={e.skill.name} id={e.skill.id} isOwner={isOwner} />)
                     }
-                    <AddSkillButton />
+                    {isOwner && <AddSkillButton />}
                 </div>
             </section>
         </div>
@@ -73,7 +78,7 @@ const page = async ({ params }: { params: Promise<{ domain: string }> }) => {
             </div>
         </aside>
 
-        <SkillModal />
+        {isOwner && <SkillModal />}
     </div>
 }
 

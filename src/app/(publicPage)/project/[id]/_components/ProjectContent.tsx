@@ -9,6 +9,10 @@ type Block = {
             url: string
         }
         caption?: string
+        level?: number
+        style?: string
+        items?: string[] | any[]
+        alignment?: string
         [key: string]: any
     }
 }
@@ -51,17 +55,29 @@ const ProjectContent = ({ blocks, projectTitle }: ProjectContentProps) => {
                     )
                 }
                 
-                // Quote block
+                // Quote block - FIX untuk menangani berbagai format
                 if (block.type === 'quote') {
+                    // Ambil text dari berbagai kemungkinan struktur
+                    const quoteText = typeof block.data.text === 'string' 
+                        ? block.data.text 
+                        : (block.data.text as any)?.toString?.() || ''
+                    
+                    const quoteCaption = typeof block.data.caption === 'string'
+                        ? block.data.caption
+                        : (block.data.caption as any)?.toString?.() || ''
+                    
                     return (
                         <blockquote 
                             key={i} 
-                            className="border-l-4 border-base-300 pl-6 italic text-base-content/60 max-w-3xl mx-auto"
+                            className="border-l-4 border-primary pl-6 italic text-base-content/70 max-w-3xl mx-auto my-8"
                         >
-                            <p dangerouslySetInnerHTML={{ __html: block.data.text || '' }} />
-                            {block.data.caption && (
-                                <footer className="text-sm text-base-content/50 mt-2">
-                                    — {block.data.caption}
+                            <p 
+                                className="text-lg"
+                                dangerouslySetInnerHTML={{ __html: quoteText }} 
+                            />
+                            {quoteCaption && (
+                                <footer className="text-sm text-base-content/50 mt-2 not-italic">
+                                    — {quoteCaption}
                                 </footer>
                             )}
                         </blockquote>
@@ -90,20 +106,53 @@ const ProjectContent = ({ blocks, projectTitle }: ProjectContentProps) => {
                     )
                 }
                 
-                // List block
+                // List block - FIX untuk menangani berbagai format
                 if (block.type === 'list') {
-                    const ListTag = block.data.style === 'ordered' ? 'ol' : 'ul'
+                    const isOrdered = block.data.style === 'ordered'
+                    const ListTag = isOrdered ? 'ol' : 'ul'
+                    
+                    // Pastikan items adalah array
+                    const items = Array.isArray(block.data.items) 
+                        ? block.data.items 
+                        : []
+                    
                     return (
                         <ListTag 
                             key={i} 
                             className={`text-base-content/70 leading-relaxed text-left max-w-3xl mx-auto ${
-                                block.data.style === 'ordered' ? 'list-decimal' : 'list-disc'
-                            } list-inside space-y-2`}
+                                isOrdered ? 'list-decimal' : 'list-disc'
+                            } list-inside space-y-2 pl-4`}
                         >
-                            {block.data.items?.map((item: string, j: number) => (
-                                <li key={j} dangerouslySetInnerHTML={{ __html: item }} />
-                            ))}
+                            {items.map((item: string | any, j: number) => {
+                                // Handle jika item adalah string atau object
+                                const itemText = typeof item === 'string' 
+                                    ? item 
+                                    : (item?.content || item?.text || item?.toString?.() || '')
+                                
+                                return (
+                                    <li 
+                                        key={j} 
+                                        className="ml-2"
+                                        dangerouslySetInnerHTML={{ __html: itemText }} 
+                                    />
+                                )
+                            })}
                         </ListTag>
+                    )
+                }
+                
+                // Fallback untuk tipe block yang tidak dikenali
+                // Debug mode: tampilkan tipe block
+                if (process.env.NODE_ENV === 'development') {
+                    return (
+                        <div key={i} className="p-4 border border-warning rounded-lg max-w-3xl mx-auto">
+                            <p className="text-warning font-semibold">
+                                Unknown block type: {block.type}
+                            </p>
+                            <pre className="text-xs mt-2 overflow-auto">
+                                {JSON.stringify(block.data, null, 2)}
+                            </pre>
+                        </div>
                     )
                 }
                 

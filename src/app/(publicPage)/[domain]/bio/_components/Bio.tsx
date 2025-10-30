@@ -9,7 +9,7 @@ import { useParams } from "next/navigation"
 import { StatusCodes } from "http-status-codes"
 import { showToast } from "@/lib/alert"
 
-const Bio = ({ bio }: { bio?: string | null }) => {
+const Bio = ({ bio, isOwner }: { bio?: string | null, isOwner: boolean }) => {
     const params = useParams() as { domain: string }
     const [isEdit, setIsEdit] = useState(false)
     const schema = object().shape({
@@ -49,7 +49,7 @@ const Bio = ({ bio }: { bio?: string | null }) => {
     } else {
         return <div className="flex items-center gap-4">
             <p className="text-sm leading-relaxed text-base-content/70 whitespace-pre-line">{bio ?? "Belum ada bio"}</p>
-            <button className="btn btn-circle btn-sm" onClick={() => setIsEdit(true)}><TbPencil /></button>
+            {isOwner && <button className="btn btn-circle btn-sm" onClick={() => setIsEdit(true)}><TbPencil /></button>}
         </div>
     }
 }

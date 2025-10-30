@@ -7,6 +7,7 @@ import { FaHeart, FaBookmark, FaEdit, FaTrash } from "react-icons/fa"
 import { UploadApiResponse } from "cloudinary"
 import Swal from "sweetalert2"
 import { deleteProject } from "../action"
+import { Major } from "@/lib/values"
 
 type ProjectHeaderProps = {
     userId: string
@@ -84,7 +85,7 @@ const ProjectHeader = ({ userId, userName, userPhoto, studentUser, isOwner, proj
                     </Link>
                     {studentUser && (
                         <p className="text-sm text-base-content/60">
-                            {studentUser.classLevel} {studentUser.major}
+                            {studentUser.classLevel} { Major.find(e => e.key == studentUser.major)?.value }
                         </p>
                     )}
                 </div>
