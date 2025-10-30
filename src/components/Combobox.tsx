@@ -46,3 +46,4 @@ const Comboboxs = ({ data, onChange, value, onSelect, isLoading }: Props) => {
 }
 
 export default Comboboxs
+export { Comboboxs as Combobox }

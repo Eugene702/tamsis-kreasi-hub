@@ -13,7 +13,7 @@ import { useParams } from "next/navigation"
 import { StatusCodes } from "http-status-codes"
 import { showToast } from "@/lib/alert"
 
-const Combobox = dynamic(() => import('@/components/combobox'))
+const Combobox = dynamic(() => import('@/components/Combobox'))
 const SkillModal = () => {
     const params = useParams() as { domain: string }
     const ref = useRef<HTMLDialogElement>(null)
