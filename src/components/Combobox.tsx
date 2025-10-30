@@ -1,58 +1,48 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react"
+import { TbCheck } from "react-icons/tb"
 
 type Props = {
     data: { id: string, text: string }[],
     onChange: (value: string) => void,
     value: Props['data'][number] | null,
-    onSelect: (id: string) => void,
+    onSelect: (data: Props['data'][number] | null) => void,
     isLoading?: boolean,
 }
 
-const Combobox = ({ data, onChange, value, onSelect, isLoading }: Props) => {
-    const refInput = useRef<HTMLInputElement>(null)
-    const dropdownRef = useRef<HTMLFieldSetElement>(null)
-    const [show, setShow] = useState(false)
+const Comboboxs = ({ data, onChange, value, onSelect, isLoading }: Props) => {
+    return <Combobox
+        value={value}
+        onChange={onSelect}
+        onClose={() => onChange("")}>
+        <div className="relative overflow-visible">
+            <ComboboxInput
+                displayValue={(e: Props['value']) => e?.text || ""}
+                onChange={e => onChange(e.target.value)}
+                className="input input-bordered w-full !rounded-xl"
+                placeholder="Cari sesuatu..." />
 
-    const handleOnClickSelect = (id: string) => {
-        onSelect(id)
-        refInput.current!.value = data.find(e => e.id === id)?.text || ""
-    }
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current) {
-                if (!dropdownRef.current.contains(e.target as Node)) {
-                    setShow(false)
+            <ComboboxOptions
+                className="absolute left-0 right-0 top-full mt-1 z-[1000] bg-white rounded-xl shadow-xl ring-1 ring-black/5 overflow-hidden">
+                {
+                    isLoading ? (
+                        <div className="px-3 py-2 text-sm text-base-content/60">Memuat…</div>
+                    ) : (
+                        data.map(e => (
+                            <ComboboxOption
+                                key={e.id}
+                                value={e}
+                                className="group flex cursor-default items-center gap-2 px-3 py-2 select-none data-focus:bg-base-200">
+                                <TbCheck className="invisible size-5 group-data-selected:visible" />
+                                {e.text}
+                            </ComboboxOption>
+                        ))
+                    )
                 }
-            }
-        }
-
-        if (show) {
-            document.addEventListener("mousedown", handleClickOutside)
-        }else{
-            refInput.current!.value = value ? value.text : ""
-        }
-    }, [dropdownRef, show])
-
-    return <fieldset className="fieldset" ref={dropdownRef}>
-        <legend className="fieldset-legend">Pilih Kemampuan</legend>
-        <div className="relative w-full">
-            <div className="input input-bordered w-full !rounded-xl">
-                <input type="text" placeholder="Pilih Kemampuan" ref={refInput} onFocus={() => setShow(true)} onChange={e => onChange(e.target.value)} />
-                {isLoading && <div className="loading"></div>}
-            </div>
-            <div className={`absolute w-full top-10 shadow-xl rounded-xl z-50 p-3 bg-white ${show ? "block" : "hidden"}`}>
-                <ul className="menu bg-white rounded-box w-full">
-                    { value ? data.filter(e => e.id === value.id).map(e => <li key={e.id} className="text-primary">{ e.text }</li>) : null }
-                    {data.length > 0 ? data.filter(item => value ?  item.id != value.id : true).map(item => <li key={item.id}>
-                        <button type="button" onClick={() => handleOnClickSelect(item.id)}>{item.text}</button>
-                    </li>) : <li className="text-center">Tidak ada data</li>}
-                </ul>
-            </div>
+            </ComboboxOptions>
         </div>
-    </fieldset>
+    </Combobox>
 }
 
-export default Combobox
+export default Comboboxs

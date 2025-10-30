@@ -17,7 +17,10 @@ export const POST = async (formData: FormData) => {
             if(uploadResult.success){
                 photoData = uploadResult.data!
             }else{
-                return new Response("Gagal mengunggah foto", { status: StatusCodes.INTERNAL_SERVER_ERROR })
+                return {
+                    status: StatusCodes.INTERNAL_SERVER_ERROR,
+                    message: "Gagal mengunggah foto"
+                }
             }
         }
 

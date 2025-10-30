@@ -1,62 +1,267 @@
-import { Fragment } from "react";
-import { ProjectHeader } from "./_components/ProjectHeader";
-import { ProjectCover } from "./_components/ProjectCover";
-import { ProjectInfoSidebar } from "./_components/ProjectInfoSidebar";
-import { RelatedProjects } from "./_components/RelatedProjects";
-import { ProjectGallery } from "./_components/ProjectGallery";
+import { Fragment } from "react"
+import dynamic from "next/dynamic"
+import { headers } from "next/headers"
+import { Metadata } from "next"
+import { findOne, findRelated, findByUser, incrementView } from "./action"
+import { StatusCodes } from "http-status-codes"
+import { UploadApiResponse } from "cloudinary"
+import Image from "next/image"
+import { useAuth } from "@/lib/auth"
 
-// TODO: Integrasikan data nyata via fetch / server component.
-const mockProject = {
-    title: "Website Portfolio Siswa - Creative Showcase",
-    category: "Web Development",
-    cover: "/temp.png",
-    author: {
-        name: "Suwir",
-        avatar: "/temp.png",
-        role: "Siswa XI RPL",
-    },
-    stats: {
-        views: 1250,
-        created: "2025-08-10",
-        updated: "2025-08-20",
-    },
-    tags: ["Next.js", "TailwindCSS", "UI Design", "Responsive"],
-    description: `Project ini menampilkan portofolio interaktif untuk memamerkan karya siswa dengan desain modern yang fokus pada tipografi, visual preview, dan performa.`,
-    content: `Fitur utama:\n- Landing dengan highlight interaktif\n- Komponen kartu modular\n- Responsif & aksesibel\n- Optimasi gambar Next.js\n\nStack & Pendekatan:\nStruktur dirancang modular dengan fokus ke reusability, readability, & minim style berlebihan.`,
-    gallery: ["/temp.png", "/temp.png", "/temp.png"],
-};
+const Error = dynamic(() => import('@/components/error'))
+const ProjectHeader = dynamic(() => import('./_components/ProjectHeader'))
+const ProjectContent = dynamic(() => import('./_components/ProjectContent'))
+const ProjectMeta = dynamic(() => import('./_components/ProjectMeta'))
+const AuthorCard = dynamic(() => import('./_components/AuthorCard'))
+const ProjectCard = dynamic(() => import('./_components/ProjectCard'))
+const ProjectCardWithAuthor = dynamic(() => import('./_components/ProjectCardWithAuthor'))
+const RelatedSection = dynamic(() => import('./_components/RelatedSection'))
 
-const Page = () => {
-    const p = mockProject;
-    return (
-        <Fragment>
-            <ProjectHeader title={p.title} category={p.category} author={p.author} stats={p.stats} />
-            <ProjectCover src={p.cover} title={p.title} />
-            <div className="mt-8 flex flex-wrap gap-3 text-xs md:text-[13px]">
-                <span className="px-4 py-2 rounded-full bg-base-100/70 backdrop-blur-sm shadow-sm">Updated {p.stats.updated}</span>
-                <button className="px-4 py-2 rounded-full bg-base-200/70 hover:bg-base-200 transition shadow-sm">Bagikan</button>
+const extractDescription = (content: any): string => {
+    if (!content?.blocks) return ''
+    
+    const textBlocks = content.blocks
+        .filter((b: any) => b.type === 'paragraph' || b.type === 'header')
+        .map((b: any) => b.data?.text?.replace(/<[^>]*>/g, '') || '')
+        .join(' ')
+    
+    return textBlocks.slice(0, 160).trim() || 'Lihat portfolio dan karya kreatif terbaik'
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+    const { id } = await params
+    const response = await findOne(id)
+    
+    if(response.status !== StatusCodes.OK || !response.data) {
+        return {
+            title: 'Proyek Tidak Ditemukan',
+            description: 'Proyek yang Anda cari tidak ditemukan atau tidak tersedia.'
+        }
+    }
+    
+    const project = response.data
+    const banner = project.banner as UploadApiResponse
+    const description = extractDescription(project.content)
+    const keywords = project.categories.map(c => c.categories.name).join(', ')
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tamsis-kreasi-hub.vercel.app'
+    const url = `${baseUrl}/project/${id}`
+    
+    return {
+        title: `${project.title} | ${project.user.name} - Portfolio Karya Kreatif`,
+        description,
+        keywords: [
+            keywords,
+            'portfolio',
+            'karya kreatif',
+            'student project',
+            project.user.name,
+            project.user.studentUser?.major || '',
+        ].filter(Boolean).join(', '),
+        authors: [{ name: project.user.name }],
+        creator: project.user.name,
+        publisher: 'TAMSIS Kreasi Hub',
+        openGraph: {
+            title: project.title,
+            description,
+            url,
+            siteName: 'TAMSIS Kreasi Hub',
+            images: [
+                {
+                    url: banner?.secure_url || banner?.url || '/assets/images/logo.png',
+                    width: 1200,
+                    height: 800,
+                    alt: project.title,
+                }
+            ],
+            locale: 'id_ID',
+            type: 'article',
+            publishedTime: project.createdAt.toISOString(),
+            authors: [project.user.name],
+            tags: project.categories.map(c => c.categories.name),
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: project.title,
+            description,
+            creator: `@${project.user.name.replace(/\s/g, '')}`,
+            images: [banner?.secure_url || banner?.url || '/assets/images/logo.png'],
+        },
+        alternates: {
+            canonical: url,
+        },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-video-preview': -1,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+            },
+        },
+        other: {
+            'article:published_time': project.createdAt.toISOString(),
+            'article:author': project.user.name,
+            'article:section': keywords,
+        }
+    }
+}
+
+const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
+    const { id } = await params
+    const response = await findOne(id)
+
+    if(response.status !== StatusCodes.OK || !response.data){
+        return <Error message={response.message} />
+    }
+
+    const session = await useAuth()
+    const project = response.data
+    const content = project.content as any
+    const banner = project.banner as UploadApiResponse
+    const userPhoto = project.user.photo as UploadApiResponse | null
+    const categoryIds = project.categories.map(c => c.categoryId)
+    const isOwner = session?.user?.id === project.user.id
+    
+    const headersList = await headers()
+    const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 
+               headersList.get('x-real-ip') || 
+               'unknown'
+    
+    await incrementView(id, ip)
+    
+    const [relatedResponse, userProjectsResponse] = await Promise.all([
+        findRelated(id, categoryIds),
+        findByUser(project.user.id, id)
+    ])
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tamsis-kreasi-hub.vercel.app'
+    
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'CreativeWork',
+        headline: project.title,
+        description: extractDescription(content),
+        image: banner?.secure_url || banner?.url,
+        datePublished: project.createdAt.toISOString(),
+        dateModified: project.updatedAt.toISOString(),
+        author: {
+            '@type': 'Person',
+            name: project.user.name,
+            image: (userPhoto?.secure_url || userPhoto?.url),
+            jobTitle: project.user.studentUser ? `${project.user.studentUser.classLevel} ${project.user.studentUser.major}` : undefined,
+        },
+        publisher: {
+            '@type': 'Organization',
+            name: 'TAMSIS Kreasi Hub',
+            logo: {
+                '@type': 'ImageObject',
+                url: `${baseUrl}/assets/images/logo.png`,
+            }
+        },
+        keywords: project.categories.map(c => c.categories.name).join(', '),
+        interactionStatistic: {
+            '@type': 'InteractionCounter',
+            interactionType: 'https://schema.org/ViewAction',
+            userInteractionCount: project._count.userProjectViews,
+        },
+        mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `${baseUrl}/project/${id}`,
+        }
+    }
+
+    return <Fragment>
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        
+        <div className="max-w-6xl mx-auto px-4 py-8">
+            <ProjectHeader 
+                userId={project.user.id}
+                userName={project.user.name}
+                userPhoto={userPhoto}
+                studentUser={project.user.studentUser}
+                isOwner={isOwner}
+                projectDomain={id}
+            />
+
+            <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center">{project.title}</h1>
+
+            <div className="relative w-full rounded-2xl overflow-hidden shadow-lg mb-12">
+                <Image 
+                    src={banner?.url || "/assets/images/logo.png"} 
+                    alt={project.title} 
+                    width={1200}
+                    height={800}
+                    className="w-full h-auto" 
+                    priority />
             </div>
-            <div className="mt-14 grid lg:grid-cols-12 gap-16">
-                <div className="lg:col-span-8 space-y-14">
-                    <section className="space-y-5">
-                        <h2 className="text-xl font-semibold">Deskripsi</h2>
-                        <p className="leading-relaxed text-base-content/80 whitespace-pre-line text-[15px]">{p.description}</p>
-                    </section>
-                    <section className="space-y-5">
-                        <h2 className="text-xl font-semibold">Detail Proyek</h2>
-                        <div className="space-y-4 text-base-content/80 text-[15px]">
-                            {p.content.split("\n\n").map((block, i) => (
-                                <p key={i} className="whitespace-pre-line">{block}</p>
-                            ))}
-                        </div>
-                    </section>
-                    <ProjectGallery title={p.title} gallery={p.gallery} />
+
+            {/* Konten proyek (text + gambar sesuai urutan yang dibuat) */}
+            <div className="mb-16">
+                <ProjectContent 
+                    blocks={content.blocks || []} 
+                    projectTitle={project.title}
+                />
+            </div>
+
+            <ProjectMeta 
+                categories={project.categories}
+                viewsCount={project._count.userProjectViews}
+                createdAt={project.createdAt}
+            />
+
+            <AuthorCard 
+                userId={project.user.id}
+                userName={project.user.name}
+                userPhoto={userPhoto}
+                studentUser={project.user.studentUser}
+            />
+
+            {relatedResponse.data.length > 0 && (
+                <RelatedSection 
+                    title={`Karya Lainnya dari ${project.user.name}`}
+                    viewAllHref={`/${project.user.id}`}
+                >
+                    {relatedResponse.data.map((p, i) => (
+                        <ProjectCard 
+                            key={i}
+                            domain={p.domain}
+                            title={p.title}
+                            banner={p.banner as UploadApiResponse}
+                            viewsCount={p._count.userProjectViews}
+                        />
+                    ))}
+                </RelatedSection>
+            )}
+
+            {userProjectsResponse.data.length > 0 && (
+                <div className="mt-16">
+                    <RelatedSection 
+                        title="Proyek Serupa"
+                        viewAllHref="/project"
+                    >
+                        {userProjectsResponse.data.map((p, i) => (
+                            <ProjectCardWithAuthor 
+                                key={i}
+                                domain={p.domain}
+                                title={p.title}
+                                banner={p.banner as UploadApiResponse}
+                                viewsCount={p._count.userProjectViews}
+                                user={{
+                                    name: p.user.name,
+                                    photo: p.user.photo as UploadApiResponse | null
+                                }}
+                            />
+                        ))}
+                    </RelatedSection>
                 </div>
-                <ProjectInfoSidebar category={p.category} created={p.stats.created} updated={p.stats.updated} views={p.stats.views} tags={p.tags} />
-            </div>
-            <RelatedProjects />
-        </Fragment>
-    );
-};
+            )}
+        </div>
+    </Fragment>
+}
 
-export default Page;
+export default Page

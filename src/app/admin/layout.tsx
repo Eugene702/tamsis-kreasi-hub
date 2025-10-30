@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { useAuth } from "@/lib/auth"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 import { redirect } from "next/navigation"
@@ -8,7 +8,7 @@ const Sidenav = dynamic(() => import('./_components/sidenav'))
 const Navbar = dynamic(() => import('./_components/navbar'))
 
 const layout = async ({ children }: { children: ReactNode }) => {
-    const session = await auth()
+    const session = await useAuth()
     if (session) {
         if (session.user) {
             if (session.user.role != "ADMIN") {

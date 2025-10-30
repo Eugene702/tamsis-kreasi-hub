@@ -33,6 +33,8 @@ const mock: ProfileData = {
 
 const SkillModal = dynamic(() => import('./_components/skillModal'))
 const AddSkillButton = dynamic(() => import('./_components/addSkillButton'))
+const BadgeSkill = dynamic(() => import('./_components/badgeSkill'))
+const Bio = dynamic(() => import('./_components/Bio'))
 
 const page = async ({ params }: { params: Promise<{ domain: string }> }) => {
     const param = await params
@@ -44,13 +46,15 @@ const page = async ({ params }: { params: Promise<{ domain: string }> }) => {
         <div className="md:col-span-2 space-y-8">
             <section className="space-y-4">
                 <h2 className="text-lg font-semibold">Tentang</h2>
-                <p className="text-sm leading-relaxed text-base-content/70 whitespace-pre-line">{response.data?.profile?.studentUser?.bio ?? "Belum ada bio"}</p>
+                <div className="flex items-center gap-4">
+                    <Bio bio={response.data?.profile?.studentUser?.bio} />
+                </div>
             </section>
             <section className="space-y-4">
                 <h2 className="text-lg font-semibold">Keahlian</h2>
                 <div className="flex flex-wrap gap-2">
                     {
-                        response.data?.profile?.studentUser?.skills.map((e, index) => <span className="badge" key={index}>{ e.skill.name }</span>)
+                        response.data?.profile?.studentUser?.skills.map((e, index) => <BadgeSkill key={index} name={e.skill.name} id={e.skill.id} />)
                     }
                     <AddSkillButton />
                 </div>
@@ -60,11 +64,11 @@ const page = async ({ params }: { params: Promise<{ domain: string }> }) => {
             <div className="p-5 rounded-2xl bg-base-100/70 ring-1 ring-base-300/40 space-y-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-base-content/60">Ringkasan</h3>
                 <ul className="space-y-2 text-sm">
-                    <li className="flex justify-between"><span className="text-base-content/50">Total Proyek</span><span>{ response.data?.projectTotal }</span></li>
+                    <li className="flex justify-between"><span className="text-base-content/50">Total Proyek</span><span>{response.data?.projectTotal}</span></li>
                     <li className="flex justify-between"><span className="text-base-content/50">Total Views</span><span>{formatNumber(response.data?.viewTotal ?? 0)}</span></li>
-                    <li className="flex justify-between"><span className="text-base-content/50">Jurusan</span><span>{ Major.find(a => a.key === response.data?.profile?.studentUser?.major)?.value }</span></li>
-                    <li className="flex justify-between"><span className="text-base-content/50">Kelas</span><span>{ response.data?.profile?.studentUser?.classLevel }</span></li>
-                    <li className="flex justify-between"><span className="text-base-content/50">Umur</span><span>{ moment().diff(moment(response.data?.profile?.studentUser?.birthday), 'years') } th</span></li>
+                    <li className="flex justify-between"><span className="text-base-content/50">Jurusan</span><span>{Major.find(a => a.key === response.data?.profile?.studentUser?.major)?.value}</span></li>
+                    <li className="flex justify-between"><span className="text-base-content/50">Kelas</span><span>{response.data?.profile?.studentUser?.classLevel}</span></li>
+                    <li className="flex justify-between"><span className="text-base-content/50">Umur</span><span>{moment().diff(moment(response.data?.profile?.studentUser?.birthday), 'years')} th</span></li>
                 </ul>
             </div>
         </aside>

@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic"
 import { Fragment, ReactNode } from "react"
+import Navbar from "@/components/navbar/index"
 
-const Navbar = dynamic(() => import('../../components/navbar'))
 const Footer = dynamic(() => import('../../components/footer'))
 
 const Layout = async ({ children }: { children: ReactNode }) => {

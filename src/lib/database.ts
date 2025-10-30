@@ -1,16 +1,19 @@
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from "./../generated/prisma"
+
+declare global {
+  var prisma: PrismaClient | undefined;
+}
 
 let prisma: PrismaClient;
 
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient();
+  prisma = new PrismaClient({ adapter });
 } else {
-  // @ts-ignore
   if (!global.prisma) {
-    // @ts-ignore
-    global.prisma = new PrismaClient();
+    global.prisma = new PrismaClient({ adapter });
   }
-  // @ts-ignore
   prisma = global.prisma;
 }
 

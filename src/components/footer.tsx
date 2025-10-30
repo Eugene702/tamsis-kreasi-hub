@@ -5,21 +5,19 @@ type FooterSection = { title: string; links: { label: string; href: string }[] }
 
 const navSections: FooterSection[] = [
     {
-        title: "Navigasi",
+        title: "Jelajahi",
         links: [
             { label: "Beranda", href: "/" },
+            { label: "Karya", href: "/artwork" },
+            { label: "Kategori", href: "/category" },
             { label: "Bintang Tamsis", href: "/star" },
-            { label: "Kabar Berita", href: "/news" },
-            { label: "Web Design", href: "/categories/web-design" },
         ],
     },
     {
-        title: "Tentang",
+        title: "Tautan",
         links: [
-            { label: "Profil", href: "/about" },
-            { label: "Tim", href: "/team" },
-            { label: "Dukungan", href: "/support" },
-            { label: "Kontak", href: "/contact" },
+            { label: "Masuk", href: "/auth/signin" },
+            { label: "Unggah Karya", href: "/project/create" },
         ],
     },
 ];
@@ -44,7 +42,7 @@ const Footer = () => {
                 <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-base-300 to-transparent" />
             </div>
             <div className="px-6 md:px-10 xl:px-20 py-12 md:py-16 grid gap-10 md:gap-14 lg:gap-16 md:grid-cols-12">
-                <div className="md:col-span-5 lg:col-span-4 space-y-5">
+                <div className="md:col-span-6 lg:col-span-5 space-y-5">
                     <Link href="/" className="block text-2xl font-[Pacifico] tracking-wide">Tamsis Kreasi Hub</Link>
                     <p className="text-base-content/70 leading-relaxed max-w-sm">
                         Platform eksplorasi karya & talenta siswa SMK Taman Siswa 2 Jakarta. Temukan inspirasi, kolaborasi, dan inovasi di satu tempat.
@@ -58,7 +56,7 @@ const Footer = () => {
                     </div>
                 </div>
 
-                <div className="md:col-span-4 lg:col-span-5 grid grid-cols-2 gap-8 md:gap-10">
+                <div className="md:col-span-6 lg:col-span-7 grid grid-cols-2 gap-8 md:gap-10 lg:gap-16">
                     {navSections.map(section => (
                         <div key={section.title} className="space-y-4">
                             <details className="md:hidden group [&_ul]:mt-3">
@@ -83,27 +81,13 @@ const Footer = () => {
                         </div>
                     ))}
                 </div>
-
-                <div className="md:col-span-3 lg:col-span-3 space-y-5">
-                    <h3 className="font-semibold text-[12px] tracking-wide uppercase text-base-content/70">Newsletter</h3>
-                    <p className="text-base-content/70 leading-relaxed text-[13px]">Dapatkan update terbaru karya & event langsung ke email Anda.</p>
-                    <form onSubmit={(e) => e.preventDefault()} className="space-y-3">
-                        <label className="join w-full *:rounded-full">
-                            <input required type="email" placeholder="Email Anda" className="join-item input input-sm w-full" />
-                            <button className="join-item btn btn-sm btn-primary">Kirim</button>
-                        </label>
-                        <p className="text-[11px] leading-snug text-base-content/50">Dengan berlangganan Anda menyetujui kebijakan privasi kami.</p>
-                    </form>
-                </div>
             </div>
             <div className="border-t border-base-300/60">
                 <div className="px-6 md:px-10 xl:px-20 py-6 flex flex-col md:flex-row gap-4 md:gap-0 items-center justify-between text-[11px] md:text-xs text-base-content/60">
                     <p className="text-center md:text-left">&copy; {year} Tamsis Kreasi Hub. All rights reserved.</p>
-                    <div className="flex gap-5 md:gap-6 flex-wrap justify-center">
-                        <Link href="/terms" className="hover:text-base-content">Syarat</Link>
-                        <Link href="/privacy" className="hover:text-base-content">Privasi</Link>
-                        <Link href="/license" className="hover:text-base-content">Lisensi</Link>
-                    </div>
+                    <p className="text-center md:text-right text-base-content/50">
+                        SMK Taman Siswa 2 Jakarta
+                    </p>
                 </div>
             </div>
         </footer>

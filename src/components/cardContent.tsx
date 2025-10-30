@@ -1,17 +1,31 @@
+import { UploadApiResponse } from "cloudinary"
 import Image from "next/image"
 import Link from "next/link"
 import { FaEye } from "react-icons/fa"
 
-const CardContent = () => {
-    return <Link href="/" className="card bg-base-100 w-full group">
-        <figure className="relative">
-            <img
-                src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-                className="transform transition-all duration-300 group-hover:scale-125"
-                alt="Shoes" />
+type Props = {
+    href: string,
+    banner?: UploadApiResponse,
+    title: string,
+    views: number,
+    user: {
+        name: string,
+        photo?: UploadApiResponse,
+    }
+}
+
+const CardContent = (props: Props) => {
+    return <Link href={props.href} className="card bg-base-100 w-full group h-96">
+        <figure className="relative h-56">
+            <Image
+                src={props.banner ? props.banner.url : "/assets/images/logo.png"}
+                width={100}
+                height={100}
+                className="w-full h-auto transform transition-all duration-300 group-hover:scale-125"
+                alt={props.title} />
             <div className="absolute inset-0 bg-gradient-to-t transition-all duration-300 group-hover:from-black/60 group-hover:to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-4 invisible group-hover:visible">
-                <h2 className="text-lg font-semibold line-clamp-1 text-white">Shoes</h2>
+                <h2 className="text-lg font-semibold line-clamp-1 text-white">{ props.title }</h2>
             </div>
         </figure>
         <div className="card-body">
@@ -19,15 +33,19 @@ const CardContent = () => {
                 <div className="flex items-center gap-2">
                     <div className="avatar">
                         <div className="w-8 rounded-full">
-                            <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" />
+                            <Image
+                                src={props.user.photo ? props.user.photo.url : "/assets/images/logo.png"}
+                                width={32}
+                                height={32}
+                                alt={props.user.name} />
                         </div>
                     </div>
-                    <p className="line-clamp-1">Eugene</p>
+                    <p className="line-clamp-1">{ props.user.name }</p>
                 </div>
 
                 <div className="flex items-center gap-2 justify-self-end">
                     <FaEye />
-                    <p>1.2K</p>
+                    <p>{ props.views }</p>
                 </div>
             </div>
         </div>

@@ -7,6 +7,7 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  engineType      = "client"
   previewFeatures = ["relationJoins"]
 }
 
@@ -43,8 +44,7 @@ model Categories {
 }
 
 model StudentUser{
-  id String @id @default(cuid())
-  userId String @unique
+  userId String @id
   major String
   classLevel Int
   birthday DateTime @db.Date
@@ -66,18 +66,17 @@ model StudentUserSkills{
   studentUserId String
   skillId String
   
-  studentUser StudentUser @relation(fields: [studentUserId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  studentUser StudentUser @relation(fields: [studentUserId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
   skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   @@id([studentUserId, skillId])
 
 }
 
 model UserProject{
-  id String @id @default(cuid())
+  domain String @id
   userId String
+  banner Json?
   title String
-  description String
-  detail String
   content Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -91,7 +90,7 @@ model UserProjectCategories{
   userProjectId String
   categoryId String
 
-  userProject UserProject @relation(fields: [userProjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userProject UserProject @relation(fields: [userProjectId], references: [domain], onDelete: Cascade, onUpdate: Cascade)
   categories Categories @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   @@id([userProjectId, categoryId])
 }
@@ -102,5 +101,7 @@ model UserProjectViews{
   address String
   createdAt DateTime @default(now())
 
-  userProject UserProject @relation(fields: [userProjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userProject UserProject @relation(fields: [userProjectId], references: [domain], onDelete: Cascade, onUpdate: Cascade)
+  
+  @@index([userProjectId, address, createdAt])
 }

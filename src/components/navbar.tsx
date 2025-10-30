@@ -7,13 +7,21 @@ import { usePathname, useRouter } from "next/navigation"
 import { useSession, signIn, signOut } from "next-auth/react"
 import { showToast } from "@/lib/alert"
 
-const navLinks = [
-    { label: "Eksplorasi", children: [{ label: "Web Design", href: "/category/web-design" }] },
-    { label: "Bintang Tamsis", href: "/star" },
-    // { label: "Kabar Berita", href: "/news" },
-];
+interface Category {
+    label: string
+    href: string
+}
 
-const Navbar = () => {
+interface NavbarClientProps {
+    categories: Category[]
+}
+
+const NavbarClient = ({ categories }: NavbarClientProps) => {
+    const navLinks = [
+        { label: "Eksplorasi", children: categories.length > 0 ? categories : [{ label: "Kategori", href: "/category" }] },
+        { label: "Bintang Tamsis", href: "/star" },
+    ]
+
     const router = useRouter()
     const [loading, setLoading] = useState<"SIGN_OUT" | null>(null)
     const [mobileOpen, setMobileOpen] = useState(false)
@@ -105,7 +113,7 @@ const Navbar = () => {
                                 </div>
                             </button>
                             <ul className="mt-3 z-[1] p-3 menu menu-sm dropdown-content bg-base-100/90 backdrop-blur rounded-2xl w-60 ring-1 ring-base-300/40 shadow-lg space-y-1">
-                                <li><Link href={session.user.id} className="rounded-xl">Profil</Link></li>
+                                <li><Link href={`/${session.user.id}`} className="rounded-xl">Profil</Link></li>
                                 {
                                     session.user.role === "ADMIN" && <li><Link href="/admin/student" className="rounded-xl">Daftar Siswa</Link></li>
                                 }
@@ -182,4 +190,4 @@ const Navbar = () => {
     );
 };
 
-export default Navbar
+export default NavbarClient

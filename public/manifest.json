@@ -1,0 +1,27 @@
+{
+  "name": "Tamsis Kreasi Hub - Galeri Portfolio Siswa SMK Taman Siswa 2 Jakarta",
+  "short_name": "Tamsis Kreasi Hub",
+  "description": "Galeri digital resmi untuk portofolio dan karya terbaik siswa SMK Taman Siswa 2 Jakarta",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#047857",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "portfolio", "student"],
+  "lang": "id",
+  "dir": "ltr"
+}

@@ -1,31 +1,64 @@
-"use client";
-import { useState } from 'react';
-import { FiSearch, FiSliders } from 'react-icons/fi';
+"use client"
+
+import { useState, useTransition } from 'react'
+import { FiSearch, FiSliders } from 'react-icons/fi'
+import { Major } from '@/lib/values'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export interface StarFilterState {
-  query: string;
-  jurusan: string;
-  kelas: string;
-  umur: string;
+  query: string
+  jurusan: string
+  kelas: string
+  umur: string
 }
 
 interface Props {
-  onChange: (state: StarFilterState) => void;
+  availableAges: number[]
 }
 
-const jurusanOptions = ['Semua', 'RPL', 'DKV', 'TKJ', 'AKL'];
-const kelasOptions = ['Semua', 'X', 'XI', 'XII'];
-const umurOptions = ['Semua', '15', '16', '17', '18'];
+const kelasOptions = ['Semua', '10', '11', '12']
 
-export function StarFilters({ onChange }: Props) {
-  const [openAdv, setOpenAdv] = useState(false);
-  const [state, setState] = useState<StarFilterState>({ query: '', jurusan: 'Semua', kelas: 'Semua', umur: 'Semua' });
+export const StarFilters = ({ availableAges }: Props) => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+  
+  const [openAdv, setOpenAdv] = useState(false)
+  
+  const jurusanKeyFromUrl = searchParams.get('jurusan') || 'Semua'
+  const jurusanValue = jurusanKeyFromUrl === 'Semua' 
+    ? 'Semua' 
+    : Major.find(m => m.key === jurusanKeyFromUrl)?.value || 'Semua'
+  
+  const [state, setState] = useState<StarFilterState>({ 
+    query: searchParams.get('query') || '', 
+    jurusan: jurusanValue, 
+    kelas: searchParams.get('kelas') || 'Semua', 
+    umur: searchParams.get('umur') || 'Semua' 
+  })
+
+  const jurusanOptions = ['Semua', ...Major.map(m => m.value)]
+  const umurOptions = ['Semua', ...availableAges.map(a => a.toString())]
 
   const update = (patch: Partial<StarFilterState>) => {
-    const next = { ...state, ...patch };
-    setState(next);
-    onChange(next);
-  };
+    const next = { ...state, ...patch }
+    setState(next)
+    
+    const params = new URLSearchParams()
+    if (next.query) params.set('query', next.query)
+    
+    if (next.jurusan && next.jurusan !== 'Semua') {
+      const jurusanKey = Major.find(m => m.value === next.jurusan)?.key
+      if (jurusanKey) params.set('jurusan', jurusanKey)
+    }
+    
+    if (next.kelas && next.kelas !== 'Semua') params.set('kelas', next.kelas)
+    if (next.umur && next.umur !== 'Semua') params.set('umur', next.umur)
+    
+    startTransition(() => {
+      router.push(`/star?${params.toString()}`)
+    })
+  }
 
   return (
     <div className="space-y-4">
@@ -51,15 +84,20 @@ export function StarFilters({ onChange }: Props) {
         <div className="grid sm:grid-cols-3 gap-4 bg-base-100/60 p-4 rounded-2xl ring-1 ring-base-300/40">
           <Select label="Jurusan" value={state.jurusan} options={jurusanOptions} onChange={v => update({ jurusan: v })} />
           <Select label="Kelas" value={state.kelas} options={kelasOptions} onChange={v => update({ kelas: v })} />
-            <Select label="Umur" value={state.umur} options={umurOptions} onChange={v => update({ umur: v })} />
+          <Select label="Umur" value={state.umur} options={umurOptions} onChange={v => update({ umur: v })} />
+        </div>
+      )}
+      {isPending && (
+        <div className="text-center py-4">
+          <div className="loading loading-spinner loading-sm"></div>
         </div>
       )}
     </div>
-  );
+  )
 }
 
-interface SelectProps { label: string; value: string; options: string[]; onChange: (v: string) => void; }
-function Select({ label, value, options, onChange }: SelectProps) {
+interface SelectProps { label: string; value: string; options: string[]; onChange: (v: string) => void }
+const Select = ({ label, value, options, onChange }: SelectProps) => {
   return (
     <label className="flex flex-col gap-1 text-xs font-medium uppercase tracking-wide text-base-content/60">
       {label}
@@ -71,5 +109,5 @@ function Select({ label, value, options, onChange }: SelectProps) {
         {options.map(o => <option key={o}>{o}</option>)}
       </select>
     </label>
-  );
+  )
 }

@@ -1,3 +1,5 @@
+"use server"
+
 import { v2 as Cloudinary, UploadApiResponse } from "cloudinary"
 import { StatusCodes } from "http-status-codes"
 
@@ -33,6 +35,22 @@ export const uploadImage = async (file: File, folder: string) => {
 export const deleteImage = async (data: UploadApiResponse) => {
     try{
         await Cloudinary.uploader.destroy(data.public_id)
+        return {
+            status: StatusCodes.OK,
+            message: "Gambar berhasil dihapus!"
+        }
+    }catch(e){
+        console.error(e)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            message: "Ada kesalahan pada server!"
+        }
+    }
+}
+
+export const deleteImageByPublicId = async (publicId: string) => {
+    try{
+        await Cloudinary.uploader.destroy(publicId)
         return {
             status: StatusCodes.OK,
             message: "Gambar berhasil dihapus!"

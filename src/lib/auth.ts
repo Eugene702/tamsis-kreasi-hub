@@ -6,7 +6,7 @@ import type {
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/authOptions" 
 
-export function auth(
+export function useAuth(
   ...args:
     | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
     | [NextApiRequest, NextApiResponse]

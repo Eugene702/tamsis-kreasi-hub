@@ -1,57 +1,74 @@
-"use client";
-import { useEffect, useMemo, useState } from 'react';
-import { StarFilters, StarFilterState } from './StarFilters';
-import { StarItem, type StudentStarData } from './StarItem';
+"use client"
 
-// Mock generator (replace with server fetch later)
-function generateMock(): StudentStarData[] {
-  const names = ['Aji Nugraha', 'Suwir Pratama', 'Nabila Firda', 'Raka Wijaya', 'Dewi Lestari', 'Fikri Maulana', 'Gilang Saputra', 'Intan Pramesi'];
-  const jur = ['RPL', 'DKV', 'TKJ', 'AKL'];
-  return names.map((n, i) => {
-    const projects = Array.from({ length: 5 }).map((_, j) => ({
-      id: `${i}-${j}`,
-      title: `Project ${j + 1} ${n.split(' ')[0]}`,
-      views: Math.floor(Math.random() * 4000) + 100,
-    })).sort((a, b) => b.views - a.views);
-    const totalViews = projects.reduce((s, p) => s + p.views, 0);
-    return {
-      id: `stu-${i}`,
-      name: n,
-      avatar: '/temp.png',
-      jurusan: jur[i % jur.length],
-      kelas: ['X', 'XI', 'XII'][i % 3],
-      umur: 16 + (i % 3),
-      projects,
-      totalViews,
-    } as StudentStarData;
-  }).sort((a, b) => b.totalViews - a.totalViews);
+import { useState, useEffect } from 'react'
+import { StarFilters } from './StarFilters'
+import { StarItem } from './StarItem'
+import { GetStarStudentsType, loadMoreStarStudents } from '../action'
+import { StatusCodes } from 'http-status-codes'
+import { useSearchParams } from 'next/navigation'
+
+type Props = {
+    initialData: NonNullable<GetStarStudentsType['data']>['students']
+    hasMore: boolean
+    availableAges: number[]
 }
 
-export function StarList() {
-  const [filter, setFilter] = useState<StarFilterState>({ query: '', jurusan: 'Semua', kelas: 'Semua', umur: 'Semua' });
-  const [data, setData] = useState<StudentStarData[]>([]);
+export const StarList = ({ initialData, hasMore: initialHasMore, availableAges }: Props) => {
+    const searchParams = useSearchParams()
+    const [students, setStudents] = useState(initialData)
+    const [hasMore, setHasMore] = useState(initialHasMore)
+    const [loading, setLoading] = useState(false)
 
-  useEffect(() => { setData(generateMock()); }, []);
+    useEffect(() => {
+        setStudents(initialData)
+        setHasMore(initialHasMore)
+    }, [initialData, initialHasMore])
 
-  const filtered = useMemo(() => {
-    return data.filter(d => {
-      if (filter.query && !d.name.toLowerCase().includes(filter.query.toLowerCase())) return false;
-      if (filter.jurusan !== 'Semua' && d.jurusan !== filter.jurusan) return false;
-      if (filter.kelas !== 'Semua' && d.kelas !== filter.kelas) return false;
-      if (filter.umur !== 'Semua' && d.umur !== Number(filter.umur)) return false;
-      return true;
-    });
-  }, [data, filter]);
+    const handleLoadMore = async () => {
+        setLoading(true)
 
-  return (
-    <div className="space-y-10">
-      <StarFilters onChange={setFilter} />
-      <div className="space-y-10">
-        {filtered.map(stu => <StarItem key={stu.id} data={stu} />)}
-        {filtered.length === 0 && (
-          <div className="text-center py-20 text-base-content/50 text-sm">Tidak ada hasil yang cocok.</div>
-        )}
-      </div>
-    </div>
-  );
+        const filters = {
+            query: searchParams.get('query') || undefined,
+            jurusan: searchParams.get('jurusan') || undefined,
+            kelas: searchParams.get('kelas') || undefined,
+            umur: searchParams.get('umur') || undefined
+        }
+
+        const response = await loadMoreStarStudents(students.length, filters)
+
+        if (response.status === StatusCodes.OK && response.data) {
+            setStudents(prev => [...prev, ...response.data!.students])
+            setHasMore(response.data.hasMore)
+        }
+
+        setLoading(false)
+    }
+
+    return (
+        <div className="space-y-10">
+            <StarFilters availableAges={availableAges} />
+            
+            <div className="space-y-10">
+                {students.map(stu => <StarItem key={stu.id} data={stu} />)}
+                {students.length === 0 && (
+                    <div className="text-center py-20 text-base-content/50 text-sm">
+                        Tidak ada hasil yang cocok.
+                    </div>
+                )}
+            </div>
+
+            {hasMore && students.length > 0 && (
+                <div className="flex justify-center pt-6">
+                    <button
+                        className="btn btn-outline btn-sm sm:btn-md !rounded-full"
+                        onClick={handleLoadMore}
+                        disabled={loading}
+                    >
+                        {loading && <div className="loading loading-spinner"></div>}
+                        <span>{loading ? "Loading..." : "Load More"}</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    )
 }

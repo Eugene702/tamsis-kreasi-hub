@@ -1,14 +1,18 @@
 import dynamic from "next/dynamic"
+import { findAll } from "./action"
+import { StatusCodes } from "http-status-codes"
 
 const Form = dynamic(() => import('./_components/form'))
-const Tools = dynamic(() => import('./_components/tools'))
-const ImageProperties = dynamic(() => import('./_components/imageProperties'))
+const Error = dynamic(() => import('@/components/error'))
 
-const page = () => {
-    return <main className="w-6/12 mx-auto py-20 relative">
-        <Form />
-        <Tools />
-        <ImageProperties />
+const page = async () => {
+    const response = await findAll()
+    if(response.status != StatusCodes.OK){
+        return <Error message={response.message} />
+    }
+
+    return <main className="py-20 w-full">
+        <Form data={response} />
     </main>
 }
 

@@ -61,7 +61,7 @@ const Form = ({ data }: { data: GetType['data'] }) => {
             classLevel: data?.studentUser?.classLevel,
             major: data?.studentUser?.major,
             birthDate: momentClient(data?.studentUser?.birthday).format("YYYY-MM-DD"),
-            phone: data?.studentUser?.telp,
+            phone: data?.studentUser?.telp || "",
             password: "",
             confirmPassword: "",
         },
