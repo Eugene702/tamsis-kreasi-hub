@@ -5,7 +5,7 @@ import { uploadImage as uploadImageByCloudinary, deleteImageByPublicId } from "@
 import prisma from "@/lib/database"
 import { OutputData } from "@editorjs/editorjs"
 import { useAuth } from "@/lib/auth"
-import { Prisma } from "@/generated/prisma"
+import { Prisma } from "@prisma/client"
 import { redirect } from "next/navigation"
 
 export type InitDataType = Awaited<ReturnType<typeof initData>>

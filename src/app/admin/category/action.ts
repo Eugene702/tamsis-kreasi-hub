@@ -1,6 +1,6 @@
 "use server"
 
-import { Prisma } from "@/generated/prisma"
+import { Prisma } from "@prisma/client"
 import prisma from "@/lib/database"
 import { StatusCodes } from "http-status-codes"
 import { revalidatePath } from "next/cache"

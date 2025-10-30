@@ -6,7 +6,7 @@ import { UploadApiResponse } from "cloudinary"
 import { StatusCodes } from "http-status-codes"
 import { hash, genSalt } from "bcrypt"
 import { revalidatePath } from "next/cache"
-import { Prisma } from "@/generated/prisma"
+import { Prisma } from "@prisma/client"
 
 export type GetType = Awaited<ReturnType<typeof GET>>
 export const GET = async (id: string) => {

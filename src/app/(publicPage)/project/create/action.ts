@@ -5,7 +5,7 @@ import { uploadImage as uploadImageByCloudinary } from "@/lib/cloudinary"
 import prisma from "@/lib/database"
 import { OutputData } from "@editorjs/editorjs"
 import { useAuth } from "@/lib/auth"
-import { Prisma } from "@/generated/prisma"
+import { Prisma } from "@prisma/client"
 
 export type FindAllType = Awaited<ReturnType<typeof findAll>>
 export const findAll = async () => {

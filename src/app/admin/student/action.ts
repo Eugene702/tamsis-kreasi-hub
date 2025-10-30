@@ -1,7 +1,7 @@
 "use server"
 
 import prisma from "@/lib/database"
-import { Prisma } from "@/generated/prisma"
+import { Prisma } from "@prisma/client"
 import { StatusCodes } from "http-status-codes"
 import { revalidatePath } from "next/cache"
 import { deleteImage } from "@/lib/cloudinary"
