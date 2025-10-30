@@ -35,7 +35,8 @@ Proyek ini diharapkan menjadi standar baru untuk integrasi lintas jurusan dan ak
 const formatNumber = (n: number) => Intl.NumberFormat('id-ID').format(n);
 const formatDate = (iso: string) => new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
-export default function NewsDetailPage({ params }: { params: { domain: string } }) {
+export default async function NewsDetailPage({ params }: { params: Promise<{ domain: string }> }) {
+	const { domain } = await params;
 	const a = mockArticle; // placeholder
 	return (
 		<Fragment>
