@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 	title: "Manajemen Siswa - Admin",
 }
 
-export const page = async ({ searchParams }: { searchParams: Promise<Props> }) => {
+export default async function StudentPage({ searchParams }: { searchParams: Promise<Props> }) {
 	const query = await searchParams
 	const data = await GET({ search: query.search, page: query.page ? Number(query.page) : undefined, age: query.age, major: query.major, classLevel: query.classLevel ? Number(query.classLevel) : undefined })
 
@@ -47,5 +47,3 @@ export const page = async ({ searchParams }: { searchParams: Promise<Props> }) =
 		</div>
 	);
 }
-
-export default page
