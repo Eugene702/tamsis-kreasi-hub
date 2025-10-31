@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { createElement } from "react"
+import { createElement, JSX } from "react"
 
 type Block = {
     type: string
@@ -106,7 +106,7 @@ const ProjectContent = ({ blocks, projectTitle }: ProjectContentProps) => {
                     )
                 }
                 
-                // List block - FIX untuk menangani berbagai format
+                // List block - Support nested lists (sub-ordered/sub-unordered)
                 if (block.type === 'list') {
                     const isOrdered = block.data.style === 'ordered'
                     const ListTag = isOrdered ? 'ol' : 'ul'
@@ -116,6 +116,44 @@ const ProjectContent = ({ blocks, projectTitle }: ProjectContentProps) => {
                         ? block.data.items 
                         : []
                     
+                    // Fungsi rekursif untuk render nested list
+                    const renderListItem = (item: string | any, index: number, depth: number = 0): JSX.Element => {
+                        // Handle jika item adalah string sederhana
+                        if (typeof item === 'string') {
+                            return (
+                                <li 
+                                    key={index} 
+                                    className="ml-2"
+                                    dangerouslySetInnerHTML={{ __html: item }} 
+                                />
+                            )
+                        }
+                        
+                        // Handle jika item adalah object dengan content dan nested items
+                        const itemContent = item?.content || item?.text || ''
+                        const nestedItems = Array.isArray(item?.items) ? item.items : []
+                        const hasNested = nestedItems.length > 0
+                        
+                        // Tentukan style untuk nested list (bisa berbeda dengan parent)
+                        const NestedListTag = hasNested && item?.style === 'ordered' ? 'ol' : 'ul'
+                        const nestedListClass = item?.style === 'ordered' ? 'list-decimal' : 'list-disc'
+                        
+                        return (
+                            <li key={index} className="ml-2">
+                                <span dangerouslySetInnerHTML={{ __html: itemContent }} />
+                                {hasNested && (
+                                    <NestedListTag 
+                                        className={`${nestedListClass} list-inside space-y-1 mt-2 ml-6 pl-2`}
+                                    >
+                                        {nestedItems.map((nestedItem: any, nestedIndex: number) => 
+                                            renderListItem(nestedItem, nestedIndex, depth + 1)
+                                        )}
+                                    </NestedListTag>
+                                )}
+                            </li>
+                        )
+                    }
+                    
                     return (
                         <ListTag 
                             key={i} 
@@ -123,20 +161,7 @@ const ProjectContent = ({ blocks, projectTitle }: ProjectContentProps) => {
                                 isOrdered ? 'list-decimal' : 'list-disc'
                             } list-inside space-y-2 pl-4`}
                         >
-                            {items.map((item: string | any, j: number) => {
-                                // Handle jika item adalah string atau object
-                                const itemText = typeof item === 'string' 
-                                    ? item 
-                                    : (item?.content || item?.text || item?.toString?.() || '')
-                                
-                                return (
-                                    <li 
-                                        key={j} 
-                                        className="ml-2"
-                                        dangerouslySetInnerHTML={{ __html: itemText }} 
-                                    />
-                                )
-                            })}
+                            {items.map((item: string | any, j: number) => renderListItem(item, j))}
                         </ListTag>
                     )
                 }
